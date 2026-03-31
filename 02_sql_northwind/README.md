@@ -1,4 +1,4 @@
-# 02_sql_northwind
+# SQL Northwind
 
 ## Ziel
 Wird ergänzt.
