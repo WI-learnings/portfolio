@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="description" content="Immobilien-Investmentcheck: Rendite, Cashflow, Finanzierung, Steuer, Exit und Stressszenarien für vermietete Immobilien in Deutschland.">
+<title>Immobilien-Investmentcheck</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body><main class="w">
+<header class="intro" id="intro"><div class="ey">Kapitalanlage · Deutschland</div><h1>Immobilien-Investmentcheck</h1><p class="lead">Prüfen, ob eine vermietete Immobilie wirtschaftlich attraktiv ist – inklusive Kaufnebenkosten, Finanzierung, laufender Kosten, Steuern, Exit und Stressszenarien.</p><div class="chips"><span>Keine Anmeldung</span><span>Daten bleiben lokal</span><span>Cashflow & IRR</span><span>Stress-Test</span><span>PDF-Auswertung</span></div><p class="privacy">Die Angaben bleiben im Browser Ihres Geräts. Keine Datenbank, kein Konto, keine Übertragung an einen Server.</p><button class="btn p" id="start">Investment prüfen</button></header>
+<div class="prog hide" id="prog"><div class="pt"><span id="stxt">Schritt 1 von 7</span><span id="spct">14 %</span></div><div class="bar"><i id="bar"></i></div></div>
+<form id="form">
+<section class="step" data-s="1"><div class="card"><div class="head"><div class="n">1</div><div><h2>Objekt & Miete</h2><p>Die Basis des Investments.</p></div></div><div class="err" id="e1"></div><div class="g">
+<div><label>Kaufpreis</label><div class="e"><input id="price" type="number" min="1" inputmode="decimal" placeholder="z. B. 180000" data-r></div></div>
+<div><label>Wohnfläche <span class="help">m²</span></label><input id="area" type="number" min="1" inputmode="decimal" placeholder="z. B. 45" data-r></div>
+<div><label>Monatliche Kaltmiete</label><div class="e"><input id="rent" type="number" min="0" inputmode="decimal" placeholder="z. B. 850" data-r></div></div>
+<div><label>Weitere Mieteinnahmen p.m. <span class="help">Stellplatz etc.</span></label><div class="e"><input id="otherRent" type="number" min="0" value="0"></div></div>
+<div><label>Baujahr</label><input id="year" type="number" min="1800" max="2035" inputmode="numeric" placeholder="z. B. 1993" data-r></div>
+<div><label>Objektart</label><select id="type" data-r><option value="">Bitte wählen</option><option value="etw">Eigentumswohnung</option><option value="mfh">Mehrfamilienhaus</option><option value="efh">Haus / sonstige Wohnimmobilie</option></select></div>
+<div class="full"><label>Aktueller Vermietungsstatus</label><select id="occupied" data-r><option value="">Bitte wählen</option><option value="yes">Vermietet</option><option value="new">Neu-/Wiedervermietung geplant</option><option value="vacant">Leerstehend</option></select></div>
+</div><div class="nav"><button type="button" class="btn p next">Weiter</button></div></div></section>
+<section class="step" data-s="2"><div class="card"><div class="head"><div class="n">2</div><div><h2>Kaufkosten</h2><p>Entscheidend für die echte Anfangsrendite.</p></div></div><div class="err" id="e2"></div><div class="g">
+<div><label>Bundesland</label><select id="state" data-r><option value="">Bitte wählen</option><option value="BW">Baden-Württemberg</option><option value="BY">Bayern</option><option value="BE">Berlin</option><option value="BB">Brandenburg</option><option value="HB">Bremen</option><option value="HH">Hamburg</option><option value="HE">Hessen</option><option value="MV">Mecklenburg-Vorpommern</option><option value="NI">Niedersachsen</option><option value="NW">Nordrhein-Westfalen</option><option value="RP">Rheinland-Pfalz</option><option value="SL">Saarland</option><option value="SN">Sachsen</option><option value="ST">Sachsen-Anhalt</option><option value="SH">Schleswig-Holstein</option><option value="TH">Thüringen</option></select></div>
+<div><label>Grunderwerbsteuer</label><div class="pct"><input id="grest" type="number" step="0.1" readonly></div></div>
+<div><label>Notar + Grundbuch</label><div class="pct"><input id="notary" type="number" value="2" step="0.1"></div></div>
+<div><label>Makleranteil Käufer</label><div class="pct"><input id="broker" type="number" value="3.57" step="0.01"></div></div>
+<div><label>Sofortige Renovierung / Sanierung</label><div class="e"><input id="reno" type="number" min="0" value="0"></div></div>
+<div><label>Möbel / Küche / sonstige Anschaffung</label><div class="e"><input id="furn" type="number" min="0" value="0"></div></div>
+</div><div class="info">Kaufnebenkosten liegen je nach Bundesland und Makler häufig grob zwischen 5 % und 14 % des Kaufpreises. Diese Kosten sind für die Rendite nicht „unsichtbar“ und werden deshalb vollständig einbezogen.</div><div class="nav"><button type="button" class="btn s prev">Zurück</button><button type="button" class="btn p next">Weiter</button></div></div></section>
+<section class="step" data-s="3"><div class="card"><div class="head"><div class="n">3</div><div><h2>Laufende Kosten</h2><p>Nur Eigentümerkosten zählen gegen den Cashflow.</p></div></div><div class="err" id="e3"></div><div class="g">
+<div><label>Nicht umlagefähiges Hausgeld p.m.</label><div class="e"><input id="nonAlloc" type="number" min="0" value="0"></div></div>
+<div><label>Zuführung WEG-Erhaltungsrücklage p.m.</label><div class="e"><input id="wegReserve" type="number" min="0" value="0"></div></div>
+<div><label>Eigene Instandhaltungsreserve <span class="help">€/m²/Jahr</span></label><div class="e"><input id="maintM2" type="number" min="0" value="14.4" step="0.1"></div></div>
+<div><label>Verwaltung / sonstige Kosten p.m.</label><div class="e"><input id="admin" type="number" min="0" value="0"></div></div>
+<div><label>Leerstand / Mietausfall</label><div class="pct"><input id="vacancy" type="number" min="0" max="50" value="2" step="0.5"></div></div>
+<div><label>Weitere Eigentümerkosten p.a.</label><div class="e"><input id="otherCost" type="number" min="0" value="0"></div></div>
+</div><div class="info">Achtung auf Doppelzählung: Wenn das nicht umlagefähige Hausgeld bereits Verwaltung oder WEG-Rücklage enthält, diese Positionen nicht nochmals separat eintragen. Als Orientierung nutzt der Startwert für Instandhaltung 14,4 €/m²/Jahr und für Mietausfall 2 % – entsprechend fortgeschriebenen ImmoWertV-Modellwerten 2026; tatsächliche Objektkosten gehen vor.</div><div class="nav"><button type="button" class="btn s prev">Zurück</button><button type="button" class="btn p next">Weiter</button></div></div></section>
+<section class="step" data-s="4"><div class="card"><div class="head"><div class="n">4</div><div><h2>Finanzierung</h2><p>Hebelwirkung und Kapitaldienst.</p></div></div><div class="err" id="e4"></div><div class="g">
+<div><label>Finanzierungsquote vom Kaufpreis</label><div class="pct"><input id="ltv" type="number" min="0" max="120" value="70" step="1" data-r></div></div>
+<div><label>Sollzins p.a.</label><div class="pct"><input id="interest" type="number" min="0" max="20" value="4.2" step="0.05" data-r></div></div>
+<div><label>Anfängliche Tilgung p.a.</label><div class="pct"><input id="repay" type="number" min="0" max="20" value="2" step="0.1" data-r></div></div>
+<div><label>Zinsbindung <span class="help">Jahre</span></label><input id="fixed" type="number" min="1" max="30" value="10"></div>
+</div><div class="info">Der Rechner setzt Kaufnebenkosten und Renovierung zunächst als Eigenkapital an. Eine Finanzierung über 100 % des Kaufpreises ist möglich, wird aber als höheres Finanzierungsrisiko markiert.</div><div class="nav"><button type="button" class="btn s prev">Zurück</button><button type="button" class="btn p next">Weiter</button></div></div></section>
+<section class="step" data-s="5"><div class="card"><div class="head"><div class="n">5</div><div><h2>Steuer & AfA</h2><p>Optional, aber für die Nettorendite relevant.</p></div></div><div class="g">
+<div><label>Persönlicher Grenzsteuersatz</label><select id="tax"><option value="0">Nicht berücksichtigen</option><option value="20">ca. 20 %</option><option value="30">ca. 30 %</option><option value="35">ca. 35 %</option><option value="42">42 %</option><option value="45">45 %</option></select></div>
+<div><label>Gebäudeanteil am Kaufpreis</label><div class="pct"><input id="building" type="number" min="0" max="100" value="80" step="1"></div></div>
+<div><label>AfA-Satz</label><div class="pct"><input id="afa" type="number" min="0" max="10" step="0.1"></div></div>
+<div><label>Steuerlicher Verlust mit anderem Einkommen verrechenbar?</label><select id="lossOffset"><option value="yes">Ja / vereinfachend annehmen</option><option value="no">Nein / Steuervorteil aus Verlust nicht ansetzen</option></select></div>
+</div><details><summary>Hinweis zur AfA</summary><div class="adv info">Standardmäßig werden für Wohngebäude 3 % bei Fertigstellung nach 2022, 2 % für 1925–2022 und 2,5 % vor 1925 vorbelegt. Für bestimmte neue Wohngebäude kann eine degressive AfA von 5 % möglich sein; dies bitte objektspezifisch prüfen.</div></details><div class="nav"><button type="button" class="btn s prev">Zurück</button><button type="button" class="btn p next">Weiter</button></div></div></section>
+<section class="step" data-s="6"><div class="card"><div class="head"><div class="n">6</div><div><h2>Langfristige Annahmen</h2><p>Damit nicht nur Jahr 1 bewertet wird.</p></div></div><div class="err" id="e6"></div><div class="g">
+<div><label>Betrachtungszeitraum</label><select id="horizon" data-r><option value="5">5 Jahre</option><option value="11" selected>11 Jahre</option><option value="15">15 Jahre</option><option value="20">20 Jahre</option></select></div>
+<div><label>Zielrendite auf Eigenkapital</label><div class="pct"><input id="target" type="number" min="0" max="30" value="6" step="0.5"></div></div>
+<div><label>Mietwachstum p.a.</label><div class="pct"><input id="rentGrowth" type="number" min="-10" max="15" value="1.5" step="0.25"></div></div>
+<div><label>Kostensteigerung p.a.</label><div class="pct"><input id="costGrowth" type="number" min="-5" max="15" value="2" step="0.25"></div></div>
+<div><label>Wertentwicklung Immobilie p.a.</label><div class="pct"><input id="priceGrowth" type="number" min="-10" max="15" value="1.5" step="0.25"></div></div>
+<div><label>Verkaufskosten</label><div class="pct"><input id="sellCost" type="number" min="0" max="15" value="2" step="0.25"></div></div>
+<div class="full"><label>Verkauf voraussichtlich außerhalb der privaten 10-Jahres-Frist?</label><select id="taxFreeSale"><option value="yes">Ja / § 23 EStG voraussichtlich nicht steuerpflichtig</option><option value="no">Nein / möglicher steuerpflichtiger Verkauf</option></select></div>
+</div><div class="nav"><button type="button" class="btn s prev">Zurück</button><button type="button" class="btn p next">Weiter</button></div></div></section>
+<section class="step" data-s="7"><div class="card"><div class="head"><div class="n">7</div><div><h2>Due Diligence</h2><p>Zahlen allein reichen nicht.</p></div></div>
+<label class="check"><input type="checkbox" id="cRent"><div><b>Miete verifiziert und rechtlich plausibel</b><span>Mietvertrag / Mietspiegel / Mietpreisbremse bzw. zulässige Neuvermietungsmiete geprüft.</span></div></label>
+<label class="check"><input type="checkbox" id="cWeg"><div><b>WEG-Unterlagen geprüft</b><span>Wirtschaftsplan, Jahresabrechnung, Rücklage und mindestens die letzten 3 Protokolle angesehen.</span></div></label>
+<label class="check"><input type="checkbox" id="cTech"><div><b>Technischer Zustand geprüft</b><span>Dach, Fassade, Fenster, Heizung, Leitungen, Energiezustand und absehbare Sonderumlagen bewertet.</span></div></label>
+<label class="check"><input type="checkbox" id="cLegal"><div><b>Rechtliche Unterlagen geprüft</b><span>Grundbuch, Teilungserklärung, Gemeinschaftsordnung, Baulasten / Sondernutzungsrechte soweit relevant.</span></div></label>
+<label class="check"><input type="checkbox" id="cMarket"><div><b>Lage & Vermietbarkeit geprüft</b><span>Lokale Angebots-/Bestandsmieten, Leerstand, Nachfrage und Mikrolage gegen Alternativen verglichen.</span></div></label>
+<label class="check"><input type="checkbox" id="cFinance"><div><b>Finanzierungsangebot realistisch</b><span>Zins, Eigenkapital, Rate und Bankfähigkeit basieren auf einem plausiblen Angebot oder konservativer Annahme.</span></div></label>
+<div class="nav"><button type="button" class="btn s prev">Zurück</button><button type="button" class="btn p" id="calc">Auswertung erstellen</button></div></div></section>
+</form>
+<section class="card res" id="res"><div class="rhero"><small>Investment-Ergebnis</small><h2 id="rtitle">–</h2><p id="rsub">–</p><div class="scoreline"><div class="score" id="score">–</div><div class="scorebar"><i id="scorefill"></i></div></div></div><div class="metrics" id="metrics"></div><h3 class="sectiontitle">Bewertung</h3><div id="verdicts"></div><h3 class="sectiontitle">Stress-Test</h3><div class="stress" id="stress"></div><div class="report" id="report"></div><div class="actions"><button class="btn p" id="pdf">PDF / Drucken</button><button class="btn s" id="share">Auswertung teilen</button><button class="btn s" id="copy">Text kopieren</button><button class="btn s" id="edit">Angaben ändern</button></div><div class="sources"><h3>Rechengrundlagen</h3><p>Kaufnebenkosten: Grunderwerbsteuer, Notar/Grundbuch und ggf. Makler. Laufende Bewirtschaftung: Verwaltung, Instandhaltung, Mietausfall und nicht umlegbare Kosten. Steuer: Schuldzinsen und AfA werden vereinfacht berücksichtigt; Zuführungen zur WEG-Erhaltungsrücklage werden im Cashflow berücksichtigt, steuerlich aber nicht sofort als Werbungskosten angesetzt. Private Verkäufe können innerhalb von zehn Jahren steuerpflichtig sein.</p><p><a href="https://www.gesetze-im-internet.de/immowertv_2022/__32.html" target="_blank">ImmoWertV § 32</a> · <a href="https://www.gesetze-im-internet.de/estg/__7.html" target="_blank">EStG § 7</a> · <a href="https://www.gesetze-im-internet.de/estg/__9.html" target="_blank">EStG § 9</a> · <a href="https://www.gesetze-im-internet.de/estg/__23.html" target="_blank">EStG § 23</a> · <a href="https://www.gesetze-im-internet.de/bgb/__556d.html" target="_blank">BGB § 556d</a></p></div><div class="foot">Vorprüfung, keine Anlage-, Finanzierungs-, Rechts- oder Steuerberatung. Marktwert, Miete, technische Risiken und Steuern müssen vor einem Kauf objektscharf verifiziert werden.</div></section>
+</main>
+<script src="app.js"></script></body></html>
