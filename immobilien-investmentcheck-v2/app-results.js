@@ -1,0 +1,44 @@
+function calc(){
+  const b=project(),f=firstYear(),s=stressProject(),rt=rating(),score=financialScore(),quality=dataQuality(),acq=b.acq,p=val('price');
+  const annualRent=(val('rent')+val('otherRent'))*12,gross=annualRent/p*100,net=f.noi/acq.all*100,factor=p/annualRent;
+  const breakOcc=annualRent>0?Math.min(999,(f.costs+f.ds)/annualRent*100):NaN;
+  const irrNoGrowth=project({priceGrowthOverride:0}).irr,maxPrice=maxPriceForTarget(),beRent=breakEvenRent(),eqMultiple=equityMultiple(b.cash);
+  const ppm2=p/val('area'),rpm2=val('rent')/val('area'),marketRent=n('marketRentM2'),marketPrice=n('marketPriceM2');
+  $('rtitle').textContent=rt[0]; $('rsub').textContent=rt[1]; $('score').textContent=score+'/100'; $('scorefill').style.width=score+'%';
+  let metrics=[['Bruttomietrendite',pc(gross)],['Nettorendite vor Finanzierung',pc(net)],['Cashflow p.m. nach Steuer',eu(f.after/12)],['Cash-on-Cash Jahr 1',pc(f.coc*100)],['Konservativer DSCR',Number.isFinite(f.dscr)?NUM.format(f.dscr):'∞'],['IRR über '+val('horizon')+' Jahre',pc(b.irr*100)],['IRR ohne Wertsteigerung',pc(irrNoGrowth*100)],['Max. Kaufpreis für Ziel-IRR',eu(maxPrice)],['Break-even Gesamtmiete p.m.',eu(beRent)],['Kaufpreisfaktor',Number.isFinite(factor)?NUM.format(factor)+'×':'–'],['Eigenkapital',eu(b.equity)],['Restschuld am Ende',eu(b.balance)],['Kapitalmultiple',Number.isFinite(eqMultiple)?NUM.format(eqMultiple)+'×':'–'],['Datenqualität',quality+'/100']];
+  $('metrics').innerHTML=metrics.map(x=>`<div class="m"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('');
+  const due=CHECKS.filter(checked).length,cards=[];
+  cards.push({c:Number.isFinite(b.irr)&&b.irr*100>=val('target')?'good':b.irr*100>=val('target')-2?'warn':'bad',t:'Langfristige Rendite',x:Number.isFinite(b.irr)?`IRR ${pc(b.irr*100)} gegenüber Ziel ${pc(val('target'))}. Ohne angenommene Wertsteigerung: ${pc(irrNoGrowth*100)}.`:'IRR konnte nicht stabil berechnet werden.'});
+  cards.push({c:f.after>=0?'good':f.after>-2400?'warn':'bad',t:'Liquidität',x:`Stabilisierter Cashflow im ersten vollen Jahr: ${eu(f.after)} nach vereinfachter Steuer.`});
+  cards.push({c:f.dscr>=1.2?'good':f.dscr>=1?'warn':'bad',t:'Kapitaldienst',x:`Konservativer DSCR ${Number.isFinite(f.dscr)?NUM.format(f.dscr):'∞'}. ${f.dscr<1?'Objektüberschuss deckt den Kapitaldienst nicht vollständig.':f.dscr<1.2?'Puffer ist knapp.':'Solider Puffer.'}`});
+  cards.push({c:quality>=80?'good':quality>=55?'warn':'bad',t:'Datenqualität',x:`${due}/6 Due-Diligence-Bereiche bestätigt; Datenqualitätsindex ${quality}/100. Wirtschaftlichkeit und Datenqualität werden bewusst getrennt bewertet.`});
+  if(Number.isFinite(irrNoGrowth)&&Number.isFinite(b.irr)&&b.irr>=val('target')/100&&irrNoGrowth<val('target')/100-0.02)cards.push({c:'warn',t:'Wertsteigerungsabhängigkeit',x:'Die Zielrendite wird wesentlich durch angenommene Immobilienpreissteigerungen erreicht. Das Investment sollte auch ohne starken Exit funktionieren.'});
+  if(breakOcc>95)cards.push({c:'bad',t:'Break-even-Auslastung',x:`Rund ${pc(breakOcc)} der geplanten Jahresmiete werden benötigt, um Eigentümerkosten und Kapitaldienst zu decken.`});
+  if(Number.isFinite(marketRent)){const gap=(rpm2/marketRent-1)*100;cards.push({c:gap<=10?'good':gap<=20?'warn':'bad',t:'Miete vs. Markt',x:`Objektmiete ${eu(rpm2)}/m² vs. Vergleich ${eu(marketRent)}/m² (${gap>=0?'+':''}${pc(gap)}). Rechtliche Zulässigkeit separat prüfen.`})}
+  if(Number.isFinite(marketPrice)){const gap=(ppm2/marketPrice-1)*100;cards.push({c:gap<=0?'good':gap<=10?'warn':'bad',t:'Kaufpreis vs. Vergleich',x:`${eu(ppm2)}/m² gegenüber Vergleich ${eu(marketPrice)}/m² (${gap>=0?'+':''}${pc(gap)}). Vergleichsdaten ersetzen keine Wertermittlung.`})}
+  $('verdicts').innerHTML=cards.map(c=>`<div class="v ${c.c}"><span class="badge ${c.c==='warn'?'warn':c.c==='bad'?'bad':''}">${c.t}</span><br>${c.x}</div>`).join('');
+  const minStress=Math.min(...s.rows.map(r=>r.after));
+  const stressedRefi=project({refiRateAdd:2});
+  const refiIndex=Math.min(stressedRefi.rows.length-1,Math.max(0,Math.round(val('fixed'))));
+  const stress=[['Miete −10 % / Leerstand +5 %-Pkt.',eu(firstYear({rentFactor:.9,vacancyAdd:5}).after/12)],['Kosten +20 %',eu(firstYear({costFactor:1.2}).after/12)],['Anschlusszins +2 %-Pkt.',val('horizon')>val('fixed')?eu(stressedRefi.rows[refiIndex]?.after/12):'außerhalb Horizont'],['Kombinierter Stress: schwächstes Jahr',eu(minStress/12)],['Kombinierter Stress: IRR',pc(s.irr*100)],['Exitwert Basisszenario',eu(b.sale)]];
+  $('stress').innerHTML=stress.map(x=>`<div class="m"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('');
+  let flags=[];
+  const buildingCostApprox=(p+acq.closing)*val('building')/100;
+  if(val('reno')>buildingCostApprox*.15)flags.push('Renovierungsvolumen liegt grob über 15 % der Gebäude-Anschaffungskosten. Die 15-%-Grenze für anschaffungsnahe Herstellungskosten innerhalb von drei Jahren muss steuerlich geprüft werden; maßgeblich sind u. a. Nettobeträge und die konkrete Maßnahmenart.');
+  if(v('afaMode')==='declining')flags.push('Degressive Gebäude-AfA ist nur bei erfüllten zeitlichen und sachlichen Voraussetzungen des § 7 Abs. 5a EStG zulässig.');
+  if(val('specialAfa')>0)flags.push('Sonder-AfA wurde angesetzt. § 7b EStG verlangt konkrete Voraussetzungen; Nachweis erforderlich.');
+  if(val('maintM2')<10&&val('year')<2000)flags.push('Die kalkulatorische Instandhaltungsreserve wirkt für ein älteres Objekt eher niedrig. Technischen Zustand und WEG-Rücklage besonders prüfen.');
+  if(v('type')==='etw'&&val('nonAlloc')===0&&val('admin')===0)flags.push('Für die ETW sind weder nicht umlagefähiges Hausgeld noch Verwaltungskosten angesetzt. Das ist häufig unvollständig; Wirtschaftsplan/Jahresabrechnung prüfen.');
+  if(v('occupied')!=='yes')flags.push('Bei Neu-/Wiedervermietung muss die angesetzte Miete marktseitig und rechtlich erreichbar sein; in Gebieten mit Mietpreisbremse gilt grundsätzlich die 10-%-Grenze über der ortsüblichen Vergleichsmiete, soweit keine Ausnahme greift.');
+  if(!checked('cWeg')&&v('type')==='etw')flags.push('WEG-Unterlagen sind noch nicht bestätigt. Sonderumlagen, Beschlusssammlung und Sanierungsstau können die Rechnung dominieren.');
+  if(v('taxFreeSale')==='no')flags.push('Der Exit innerhalb der privaten Zehnjahresfrist kann steuerpflichtig sein. Der Rechner verwendet nur eine vereinfachte Näherung des Veräußerungsgewinns.');
+  if(val('horizon')>val('fixed')&&!Number.isFinite(n('refiRate')))flags.push('Betrachtungszeitraum reicht über die Zinsbindung hinaus; mangels Anschlusszins wird derselbe Zinssatz unterstellt. Eine Anschlusszins-Sensitivität ist deshalb besonders wichtig.');
+  if(!flags.length)flags.push('Keine offensichtliche zusätzliche rote Flagge aus den Eingaben; Unterlagen, Markt und Technik trotzdem objektscharf verifizieren.');
+  const rows=[['Adresse / Lage',v('address')||'–'],['Kaufpreis',eu(p)],['Kaufpreis je m²',eu(ppm2)],['Kaufnebenkosten',eu(acq.closing)],['Renovierung + Ausstattung',eu(val('reno')+val('furn'))],['Gesamtinvestition',eu(acq.all)],['Darlehen',eu(b.loan)],['Eigenkapital',eu(b.equity)],['Kaltmiete p.a.',eu(annualRent)],['Miete je m²',eu(rpm2)],['Effektive Miete Jahr 1',eu(f.eff)],['Eigentümerkosten Jahr 1',eu(f.costs)],['Kapitaldienst Jahr 1',eu(f.ds)],['Cashflow Jahr 1 nach Steuer',eu(f.after)],['Restschuld nach '+val('horizon')+' Jahren',eu(b.balance)],['Verkaufspreis Basisszenario',eu(b.sale)],['vereinfachte Exitsteuer',eu(b.saleTax)],['IRR',pc(b.irr*100)],['IRR ohne Wertsteigerung',pc(irrNoGrowth*100)],['Zielrendite',pc(val('target'))],['Wirtschaftlichkeitsindex',score+'/100'],['Datenqualität',quality+'/100']];
+  let sourceHtml='';
+  if(Array.isArray(importMeta.sources)&&importMeta.sources.length){sourceHtml='<h3>Importierte Quellen</h3><div class="sourceBox"><ul>'+importMeta.sources.slice(0,10).map(x=>{if(typeof x==='string')return `<li>${escapeHtml(x)}</li>`;const name=escapeHtml(x.name||x.title||x.type||'Quelle'),details=x.details?' – '+escapeHtml(x.details):'',url=(typeof x.url==='string'&&/^https?:\/\//i.test(x.url))?` · <a href="${escapeHtml(x.url)}" target="_blank" rel="noopener">Quelle öffnen</a>`:'';return `<li>${name}${details}${url}</li>`}).join('')+'</ul></div>'}
+  if(Array.isArray(importMeta.warnings)&&importMeta.warnings.length){sourceHtml+='<h3>Hinweise aus dem Dokumentenimport</h3>'+importMeta.warnings.map(x=>`<p>${escapeHtml(String(x))}</p>`).join('')}
+  $('report').innerHTML='<h3>Prüfprotokoll</h3><dl>'+rows.map(r=>`<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join('')+'</dl><h3>Offene Punkte / Risiken</h3>'+flags.map(x=>`<p>${x}</p>`).join('')+sourceHtml;
+  document.querySelectorAll('.step').forEach(e=>e.classList.remove('on')); $('prog').classList.add('hide'); $('res').classList.add('on'); save(); $('res').scrollIntoView({behavior:'smooth'});
+}
+function escapeHtml(x){return x.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
