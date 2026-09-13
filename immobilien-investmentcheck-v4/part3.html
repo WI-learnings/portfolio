@@ -1,0 +1,46 @@
+<section class="step" data-s="5"><div class="card"><div class="head"><div class="n">5</div><div><h2>Steuer & AfA</h2><p>Optional, aber für die Nettorendite relevant.</p></div></div><div class="g">
+<div><label>Persönlicher Grenzsteuersatz <span class="help">für vereinfachtes Modell</span></label><select id="tax"><option value="0">Nicht berücksichtigen</option><option value="20">ca. 20 %</option><option value="30">ca. 30 %</option><option value="35">ca. 35 %</option><option value="42">42 %</option><option value="45">45 %</option></select></div>
+<div><label>Gebäudeanteil am Kaufpreis <span class="help">nicht pauschal schätzen</span></label><div class="pct"><input id="building" type="number" min="0" max="100" step="1" placeholder="nur wenn bekannt"></div></div>
+<div><label>AfA-Methode</label><select id="afaMode"><option value="linear" selected>Linear</option><option value="declining">Degressiv vom Restbuchwert</option></select></div>
+<div><label>AfA-Satz</label><div class="pct"><input id="afa" type="number" min="0" max="10" step="0.1"></div></div>
+<div><label>Nutzungsdauer Möbel/Küche <span class="help">Jahre</span></label><input id="furnYears" type="number" min="1" max="30" value="10"></div>
+<div><label>Verifizierte Sonder-AfA p.a. <span class="help">optional, €</span></label><div class="e"><input id="specialAfa" type="number" min="0" value="0"></div></div>
+<div><label>Sonder-AfA Dauer <span class="help">Jahre</span></label><input id="specialAfaYears" type="number" min="0" max="10" value="4"></div>
+<div><label>Steuerlicher Verlust mit anderem Einkommen verrechenbar?</label><select id="lossOffset"><option value="yes">Ja / vereinfachend annehmen</option><option value="no">Nein / Steuervorteil aus Verlust nicht ansetzen</option></select></div>
+<div class="full"><details><summary>Präzisere Einkommensteuer 2026 (optional)</summary><div class="adv g">
+<div><label>Steuermodell</label><select id="taxMethod"><option value="marginal" selected>Grenzsteuersatz (Langfrist-Modell)</option><option value="exact2026">Tarif § 32a EStG 2026</option><option value="none">Steuern nicht berücksichtigen</option></select></div>
+<div><label>Anderes zu versteuerndes Einkommen p.a. <span class="help">ohne Immobilie</span></label><div class="e"><input id="baseZvE" type="number" min="0" placeholder="für exakten Tarif"></div></div>
+<div><label>Veranlagung</label><select id="jointTax"><option value="no" selected>Einzelveranlagung</option><option value="yes">Zusammenveranlagung / Splitting</option></select></div>
+<div><label>Solidaritätszuschlag im Tarifmodell</label><select id="includeSoli"><option value="yes" selected>Ja</option><option value="no">Nein</option></select></div>
+</div><div class="info">Das exakte Modell berechnet die zusätzliche Einkommensteuer auf den Immobiliengewinn nach dem Tarif 2026 (§ 32a EStG) statt pauschal mit einem Grenzsteuersatz. Für lange Horizonte bleibt zukünftiges Steuerrecht naturgemäß unsicher.</div></details></div>
+</div><details><summary>Hinweis zur AfA</summary><div class="adv info">Linear werden für Wohngebäude standardmäßig 3 % bei Fertigstellung nach 2022, 2 % für 1925–2022 und 2,5 % vor 1925 vorbelegt. Bei der degressiven Methode wird der eingetragene Satz korrekt vom jeweiligen Restbuchwert berechnet. Die 5-%-degressive AfA sowie § 7b-Sonder-AfA dürfen nur bei erfüllten gesetzlichen Voraussetzungen genutzt werden.</div></details><div class="nav"><button type="button" class="btn s prev">Zurück</button><button type="button" class="btn p next">Weiter</button></div></div></section>
+<section class="step" data-s="6"><div class="card"><div class="head"><div class="n">6</div><div><h2>Langfristige Annahmen</h2><p>Damit nicht nur Jahr 1 bewertet wird.</p></div></div><div class="err" id="e6"></div><div class="g">
+<div><label>Betrachtungszeitraum</label><select id="horizon" data-r><option value="5">5 Jahre</option><option value="11" selected>11 Jahre</option><option value="15">15 Jahre</option><option value="20">20 Jahre</option></select></div>
+<div><label>Zielrendite auf Eigenkapital</label><div class="pct"><input id="target" type="number" min="0" max="30" value="6" step="0.5"></div></div>
+<div><label>Mietwachstum p.a.</label><div class="pct"><input id="rentGrowth" type="number" min="-10" max="15" value="1.5" step="0.25"></div></div>
+<div><label>Kostensteigerung p.a.</label><div class="pct"><input id="costGrowth" type="number" min="-5" max="15" value="2" step="0.25"></div></div>
+<div><label>Wertentwicklung Immobilie p.a.</label><div class="pct"><input id="priceGrowth" type="number" min="-10" max="15" value="1.5" step="0.25"></div></div>
+<div><label>Inflation p.a.</label><div class="pct"><input id="inflation" type="number" min="-5" max="15" value="2" step="0.25"></div></div>
+<div><label>Verkaufskosten</label><div class="pct"><input id="sellCost" type="number" min="0" max="15" value="2" step="0.25"></div></div>
+<div><label>Exit-Bewertungsmethode</label><select id="exitMethod"><option value="growth" selected>Wertsteigerung vom Kaufpreis</option><option value="yield">Ertragswert über Exit-Rendite</option><option value="market">Vergleichswert €/m² fortschreiben</option></select></div>
+<div><label>Exit-Nettoanfangsrendite <span class="help">für Ertragswert-Exit</span></label><div class="pct"><input id="exitYield" type="number" min="0.1" max="20" value="4" step="0.1"></div></div>
+<div class="full"><details><summary>Professionelle Wert-Plausibilisierung (optional)</summary><div class="adv g">
+<div><label>Liegenschaftszinssatz</label><div class="pct"><input id="liegenschaft" type="number" min="0" max="20" step="0.1" placeholder="z. B. Gutachterausschuss"></div></div>
+<div><label>Restnutzungsdauer <span class="help">Jahre</span></label><input id="restLife" type="number" min="1" max="100" placeholder="z. B. 40"></div>
+<div><label>Zurechenbarer Bodenwert</label><div class="e"><input id="landValue" type="number" min="0" placeholder="€"></div></div>
+<div><label>Bekannte WEG-Rücklage Anteil Einheit</label><div class="e"><input id="wegReserveBalance" type="number" min="0" placeholder="€"></div></div>
+</div><div class="info">Mit Liegenschaftszins, Restnutzungsdauer und Bodenwert wird ein vereinfachter Ertragswert nach der Logik der ImmoWertV berechnet. Er ersetzt kein Verkehrswertgutachten und berücksichtigt keine objektspezifischen Zu-/Abschläge.</div></details></div>
+<div class="full"><details><summary>Bekannte zukünftige Einmalzahlungen / Capex</summary><div class="adv g">
+<div><label>Jahr 1</label><input id="capex1Year" type="number" min="1" max="30" placeholder="z. B. 3"></div><div><label>Betrag 1</label><div class="e"><input id="capex1Amount" type="number" min="0"></div></div>
+<div><label>Jahr 2</label><input id="capex2Year" type="number" min="1" max="30"></div><div><label>Betrag 2</label><div class="e"><input id="capex2Amount" type="number" min="0"></div></div>
+<div><label>Jahr 3</label><input id="capex3Year" type="number" min="1" max="30"></div><div><label>Betrag 3</label><div class="e"><input id="capex3Amount" type="number" min="0"></div></div>
+</div><div class="info">Bekannte Sonderumlagen, Heizungs-/Fenstermaßnahmen oder sonstige Einmalzahlungen werden im Cashflow berücksichtigt. Ihre konkrete steuerliche Behandlung wird bewusst nicht automatisch unterstellt.</div></details></div>
+<div class="full"><label>Verkauf voraussichtlich außerhalb der privaten 10-Jahres-Frist?</label><select id="taxFreeSale"><option value="yes">Ja / § 23 EStG voraussichtlich nicht steuerpflichtig</option><option value="no">Nein / möglicher steuerpflichtiger Verkauf</option></select></div>
+<div class="full"><details><summary>Eigene Investment-Gates (optional)</summary><div class="adv g">
+<div><label>Minimaler DSCR</label><input id="minDscr" type="number" min="0" max="5" value="1.20" step="0.05"></div>
+<div><label>Minimaler Debt Yield</label><div class="pct"><input id="minDebtYield" type="number" min="0" max="30" value="0" step="0.25"></div></div>
+<div><label>Minimaler Cashflow p.m.</label><div class="e"><input id="minCashflowMonthly" type="number" value="0"></div></div>
+<div><label>Minimale Stress-IRR</label><div class="pct"><input id="minStressIrr" type="number" min="-50" max="30" value="0" step="0.5"></div></div>
+<div><label>Minimale Datenqualität</label><div class="pct"><input id="minDataQuality" type="number" min="0" max="100" value="70" step="5"></div></div>
+</div><div class="info">Diese Schwellen sind keine gesetzlichen Standards. Sie machen die Kaufentscheidung transparent: Die App zeigt später für jedes Kriterium PASS / BEDINGT / FAIL.</div></details></div>
+</div><div class="nav"><button type="button" class="btn s prev">Zurück</button><button type="button" class="btn p next">Weiter</button></div></div></section>
