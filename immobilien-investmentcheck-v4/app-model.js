@@ -1,0 +1,43 @@
+function project(opts={}){
+  const price=Number.isFinite(opts.priceOverride)?opts.priceOverride:val('price'),vacancy=clamp((val('vacancy')+(opts.vacancyAdd||0))/100,0,.9),costGrowth=val('costGrowth')/100,priceGrowth=Number.isFinite(opts.priceGrowthOverride)?opts.priceGrowthOverride/100:(val('priceGrowth')+(opts.priceGrowthDelta||0))/100;
+  const H=val('horizon'),buildShare=val('building')/100,afaRate=val('afa')/100,acq=purchase(price,opts),initialRate=val('interest')+(opts.initialRateAdd||0),fixed=Math.max(1,val('fixed',10));
+  const baseRefi=Number.isFinite(n('refiRate'))?n('refiRate'):val('interest'),refiRate=baseRefi+(opts.refiRateAdd||0),refiRepay=Number.isFinite(n('refiRepay'))?n('refiRepay'):val('repay');
+  const li=loanInfo(initialRate,price,opts.loanOverride);let balance=li.loan,payment=li.pay,refiPayment=null,reserveBalance=acq.liquidityReserve;const equity=acq.all-li.loan,cash=[-equity],rows=[];
+  const depBase=(price+acq.closing)*buildShare+acq.capReno;let buildingBook=depBase,furnBook=val('furn'),cumBuildingDep=0;const furnYears=Math.max(1,val('furnYears',10)),specialYears=Math.max(0,val('specialAfaYears',4)),specialAnnual=val('specialAfa');
+  for(let y=1;y<=H;y++){
+    const gross=grossRentForYear(y,opts),eff=gross*(1-vacancy),cashCosts=annualCashOwnerCosts(vacancy,opts.costFactor||1)*Math.pow(1+costGrowth,y-1),noiCosts=annualNoiCosts(vacancy,opts.costFactor||1)*Math.pow(1+costGrowth,y-1),capex=capexForYear(y)*(opts.capexFactor||1);
+    let rate=initialRate;if(y>fixed){rate=refiRate;if(refiPayment===null)refiPayment=balance*((refiRate+refiRepay)/100)/12;payment=refiPayment}
+    const L=yearLoan(balance,rate,payment);balance=L.balance;
+    let normalDep=0;if(buildingBook>0){normalDep=v('afaMode')==='declining'?buildingBook*afaRate:depBase*afaRate;normalDep=Math.min(buildingBook,Math.max(0,normalDep))}
+    const specialDep=y<=specialYears?Math.min(Math.max(0,buildingBook-normalDep),specialAnnual):0,buildingDep=normalDep+specialDep;buildingBook=Math.max(0,buildingBook-buildingDep);cumBuildingDep+=buildingDep;
+    const furnDep=furnBook>0?Math.min(furnBook,val('furn')/furnYears):0;furnBook=Math.max(0,furnBook-furnDep);
+    let deductible=annualTaxDeductibleOwnerCosts(vacancy,opts.costFactor||1)*Math.pow(1+costGrowth,y-1);if(y===1)deductible+=acq.immediateReno;
+    const taxable=eff-deductible-L.interest-buildingDep-furnDep,taxCash=rentalTaxCash(taxable),noi=eff-noiCosts,rawPre=eff-cashCosts-L.debtService-capex,rawAfter=rawPre-taxCash;
+    let reserveDraw=0,externalAfter=rawAfter;if(rawAfter<0&&reserveBalance>0){reserveDraw=Math.min(reserveBalance,-rawAfter);reserveBalance-=reserveDraw;externalAfter+=reserveDraw}
+    rows.push({y,gross,eff,cashCosts,noiCosts,noi,capex,interest:L.interest,principal:L.principal,balance,pre:rawPre,after:externalAfter,rawAfter,reserveDraw,reserveBalance,taxable,taxCash,rate,buildingDep,furnDep,deductible});cash.push(externalAfter);
+  }
+  const sale=exitValue(H,price,vacancy,costGrowth,priceGrowth,opts),saleNet=sale*(1-val('sellCost')/100);let saleTax=0,taxableSaleGain=0;
+  if(v('taxFreeSale')==='no'){const adjustedRealEstateBasis=(price+acq.closing+acq.capReno)-cumBuildingDep;taxableSaleGain=Math.max(0,saleNet-adjustedRealEstateBasis);if(v('taxMethod')==='exact2026'&&Number.isFinite(n('baseZvE'))){const finalTaxable=rows.at(-1)?.taxable||0;const base=Math.max(0,n('baseZvE')+finalTaxable);saleTax=totalTax2026(base+taxableSaleGain)-totalTax2026(base)}else saleTax=taxableSaleGain*(v('taxMethod')==='none'?0:val('tax')/100)}
+  const terminal=saleNet-balance-saleTax+reserveBalance;cash[H]+=terminal;const rr=irr(cash),target=val('target')/100,NPV=npv(target,cash),infl=val('inflation')/100,realIrr=Number.isFinite(rr)?(1+rr)/(1+infl)-1:NaN;
+  return {cash,rows,irr:rr,npv:NPV,realIrr,equity,sale,saleNet,saleTax,taxableSaleGain,terminal,balance,acq,loan:li.loan,cumBuildingDep,signChanges:cashSignChanges(cash),reserveEnd:reserveBalance};
+}
+function firstYear(opts={}){const pr=project(opts),r=pr.rows[0];if(!r)return {after:NaN,noi:NaN,ds:NaN,dscr:NaN,coc:NaN};const ds=r.interest+r.principal;return {...r,ds,dscr:ds>0?r.noi/ds:Infinity,icr:r.interest>0?r.noi/r.interest:Infinity,debtYield:pr.loan>0?r.noi/pr.loan:Infinity,coc:pr.equity>0?r.rawAfter/pr.equity:NaN,eq:pr.equity,loan:pr.loan}}
+function stressProject(){return project({rentFactor:.9,vacancyAdd:5,costFactor:1.2,refiRateAdd:2,priceGrowthDelta:-2,capexFactor:1.2})}
+function unleveredProject(){return project({loanOverride:0,unlevered:true})}
+function inputCompleteness(){const core=['price','area','rent','year','type','occupied','state','nonAlloc','vacancy','interest','repay','horizon','target'];const optional=['housegeldTotal','wegReserve','marketRentM2','marketPriceM2','refiRate','energyClass','heatingType'];let got=core.filter(x=>v(x)!=='').length/core.length*.75+optional.filter(x=>v(x)!=='').length/optional.length*.25;return Math.round(got*100)}
+function evidenceQuality(){const due=CHECKS.filter(checked).length/CHECKS.length,conf=importMeta.confidence||{},critical=['price','area','rent','nonAlloc','wegReserve','interest','loanAmount','marketRentM2','marketPriceM2'],scores=critical.filter(k=>v(k)!=='').map(k=>conf[k]==='high'?1:conf[k]==='medium'?.6:conf[k]==='low'?.25:.5),cs=scores.length?scores.reduce((a,b)=>a+b,0)/scores.length:.4,src=Math.min(1,(importMeta.sources?.length||0)/6),conflicts=Math.min(.3,(importMeta.conflicts?.length||0)*.08);return Math.round(clamp((due*.55+cs*.25+src*.20-conflicts)*100,0,100))}
+function dataQuality(){return Math.round(inputCompleteness()*.35+evidenceQuality()*.65)}
+function financialScore(){
+  const b=project(),f=firstYear(),s=stressProject(),target=val('target')/100;let score=50;if(Number.isFinite(b.irr))score+=clamp((b.irr-target)*220,-26,26);score+=f.rawAfter>=0?9:-clamp(Math.abs(f.rawAfter)/1200*3,3,14);if(f.dscr>=1.25)score+=10;else if(f.dscr<1)score-=14;else score-=3;if(Number.isFinite(s.irr)){if(s.irr>=Math.max(0,target-.03))score+=8;else if(s.irr<0)score-=12;else score-=3}if(b.npv>=0)score+=5;else score-=5;const cv=comparisonValue(),iv=simplifiedIncomeValue(),p=val('price');if(Number.isFinite(cv)&&p>cv*1.1)score-=6;if(Number.isFinite(iv)&&p>iv*1.15)score-=6;if(project().loan/project().acq.all>.90)score-=5;return Math.round(clamp(score,0,100));
+}
+function maxPriceForTarget(){
+  const target=val('target')/100,current=val('price'),direct=n('loanAmount'),pct=(val('grest')+val('notary')+val('broker'))/100,extras=val('reno')+val('furn')+val('financingFees')+val('liquidityReserve');
+  let lo=Math.max(1000,current*.15);if(Number.isFinite(direct)&&direct>0)lo=Math.max(lo,((direct-extras)/(1+pct))*1.001);
+  let hi=Math.max(current*4,lo*2),fn=p=>project({priceOverride:p}).irr-target,a=fn(lo);for(let k=0;k<20&&!Number.isFinite(a);k++){lo*=1.05;a=fn(lo)}if(!Number.isFinite(a)||a<0)return NaN;
+  let b=fn(hi);for(let k=0;k<10&&(!Number.isFinite(b)||b>0);k++){hi*=1.5;b=fn(hi)}if(!Number.isFinite(b)||b>0)return NaN;
+  for(let k=0;k<90;k++){const mid=(lo+hi)/2,x=fn(mid);if(!Number.isFinite(x)){lo=mid;continue}if(x>=0)lo=mid;else hi=mid}return (lo+hi)/2;
+}
+function breakEvenRent(){const current=Math.max(1,val('rent')+val('otherRent')),cf=monthly=>firstYear({totalRentMonthly:monthly}).rawAfter;let lo=0,hi=Math.max(current*4,5000),a=cf(lo),b=cf(hi);if(!Number.isFinite(a)||!Number.isFinite(b)||b<0)return NaN;for(let k=0;k<70;k++){const mid=(lo+hi)/2,x=cf(mid);if(x>=0)hi=mid;else lo=mid}return(lo+hi)/2}
+function equityMultiple(cash){let invested=Math.max(0,-cash[0]),dist=0;for(let i=1;i<cash.length;i++){if(cash[i]<0)invested+=-cash[i];else dist+=cash[i]}return invested>0?dist/invested:NaN}
+function additionalCashNeeded(cash){let add=0;for(let i=1;i<cash.length;i++)if(cash[i]<0)add+=-cash[i];return add}
+function rating(){const g=decisionGates(),fails=g.filter(x=>x.state==='fail').length,conds=g.filter(x=>x.state==='cond').length;if(fails)return ['Investment-Gates nicht erfüllt','Mindestens ein definiertes Mindestkriterium wird verfehlt. Preis, Finanzierung oder Annahmen müssen angepasst werden.','bad'];if(conds)return ['Bedingt prüfenswert','Die Kernlogik ist grundsätzlich tragfähig, einzelne Mindestkriterien besitzen aber zu wenig Puffer oder die Datenlage ist noch nicht belastbar.','warn'];return ['Investment-Gates erfüllt – Due Diligence fortsetzen','Alle definierten Mindestkriterien werden erfüllt. Das ist keine Kaufempfehlung; Marktwert, Technik, Recht und Unterlagen müssen final verifiziert werden.','good']}
